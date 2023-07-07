@@ -94,7 +94,7 @@ export function command_main() {
  */
 export function convertFile(location, options) {
   const location_folder = path.dirname(location);
-  const filename = path.basename(location);
+  const filename = path.parse(location).name; // no extension or path parts
   const filepath = `${REPO_DIR}/${location_folder}/${filename}.php`;
   const outpath  = `${REPO_DIR}/${location_folder}/${filename}.md`;
   const sitepath = `${LOCALHOST}/${location_folder}/${filename}`;
@@ -195,6 +195,7 @@ title: ${titlePart}
 
   if(options.finalize) {
     fs.rmSync(filepath); // to remove the original file we just converted
+    console.log(`Deleted ${filepath}.`);
   }
 }
 
