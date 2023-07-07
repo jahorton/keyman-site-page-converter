@@ -24,6 +24,7 @@ export function command_main() {
     console.log("  --ast                             Instead of converting the page, outputs `pandoc`'s AST parse of it.");
     console.log("  --codeblock-language <language>   Sets the language used by codeblocks if not already set.");
     console.log("  --overwrite                       Completely erases the original page after converting it.");
+    console.log("  --verbose                         Adds verbose logging (to help diagnose problems).");
     console.log();
     console.log("<site-path-to-page> should closely match the URL for the live site, but without the protocol");
     console.log("or server-root prefix.  For https://help.keyman.com/convert/this/page, use `convert/this/page`");
@@ -118,7 +119,10 @@ export function convertFile(location, options) {
     // Allows us to see pandoc's parse for the file; this gives us useful information for
     // increasing our pandoc filter's coverage.
     const astpath = `${REPO_DIR}/${location_folder}/${filename}.ast`;
-    pandocCmd = `pandoc --from html --to native ${sitepath} -o ${astpath}`;
+    pandocCmd = `pandoc --from html --to native "${sitepath}" -o "${astpath}"`;
+    if(options.verbose) {
+      console.log(`Executing: ${pandocCmd}`);
+    }
 
     const catOutput = child_process.execSync(pandocCmd).toString();  //EXECute.
     if(catOutput) {
@@ -134,11 +138,17 @@ export function convertFile(location, options) {
 
   // Standard case.
   pandocCmd = `pandoc --from html --to markdown_phpextra+backtick_code_blocks \
-    ${sitepath} -o ${outpath} --filter "${BASE_DIR}/pandoc-filter.js"`;
+"${sitepath}" -o "${outpath}" --filter "${BASE_DIR}/pandoc-filter.js"`;
+
+  if(options.verbose) {
+    console.log(`Executing: ${pandocCmd}`);
+    console.log();
+  }
 
   const catOutput = child_process.execSync(pandocCmd, ENV).toString();  //EXECute.
   if(catOutput) {
     console.log(catOutput);
+    console.log();
   }
 
   // If we're writing out AST, that's a sign
@@ -192,6 +202,7 @@ if(import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.log();
     console.log("Options: ");
     console.log(options);
+    console.log();
   }
   paths.forEach((path) => convertFile(path, options));
 }
