@@ -32,6 +32,7 @@ function prevent_header_auto_identifiers(ele, format, meta) {
   if(ele.t == "Header") {
     ele.c[1][0] = "";
     ele.c[1][1] = [];
+    ele.c[1][2] = [];
   }
   return;
 }

@@ -97,7 +97,7 @@ export function convertFile(location, options) {
   const filename = path.basename(location);
   const filepath = `${REPO_DIR}/${location_folder}/${filename}.php`;
   const outpath  = `${REPO_DIR}/${location_folder}/${filename}.md`;
-  const sitepath = `${LOCALHOST}/developer/language/guide/${filename}`;
+  const sitepath = `${LOCALHOST}/${location_folder}/${filename}`;
 
   // Does the original page source exist?  Check before proceeding!
   if(!fs.existsSync(filepath)) {
