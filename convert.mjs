@@ -124,13 +124,16 @@ export function convertFile(location, options) {
       console.log(`Executing: ${pandocCmd}`);
     }
 
+    // No codeblock-language settings; we want the original AST output here, to serve
+    // as a reference for implementing our corrections.
     const catOutput = child_process.execSync(pandocCmd).toString();  //EXECute.
     if(catOutput) {
       console.log(catOutput);
     }
   }
 
-  let ENV={
+  const EXEC_OPTIONS={
+    // Sets environment variables for the .execSync to follow command.
     env: {
       CODEBLOCK_LANGUAGE: options.codeblockLanguage
     }
@@ -145,7 +148,7 @@ export function convertFile(location, options) {
     console.log();
   }
 
-  const catOutput = child_process.execSync(pandocCmd, ENV).toString();  //EXECute.
+  const catOutput = child_process.execSync(pandocCmd, EXEC_OPTIONS).toString();  //EXECute.
   if(catOutput) {
     console.log(catOutput);
     console.log();
