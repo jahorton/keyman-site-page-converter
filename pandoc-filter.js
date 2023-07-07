@@ -1,5 +1,10 @@
 let pandoc = require("pandoc-filter");
 
+let CODEBLOCK_LANGUAGE = undefined;
+if(process.env?.CODEBLOCK_LANGUAGE) {
+  CODEBLOCK_LANGUAGE = process.env.CODEBLOCK_LANGUAGE
+}
+
 // Pandoc wants to default to a four-space indentation for code blocks sometimes; this function
 // disables that for us.
 function force_backtick_code_blocks(ele, format, meta) {
@@ -11,10 +16,14 @@ function force_backtick_code_blocks(ele, format, meta) {
 
 // Strips the 'language-' prefix off the language attribute of the code block if it exists.
 function clean_code_block_language(ele, format, meta) {
-  if(ele.t == "CodeBlock" && ele.c[0][1].length > 0) {
-    ele.c[0][1] = ele.c[0][1].map((entry) => {
-      return entry.startsWith("language-") ? entry.substring("language-".length) : entry;
-    })
+  if(ele.t == "CodeBlock") {
+    if(ele.c[0][1].length > 0) {
+      ele.c[0][1] = ele.c[0][1].map((entry) => {
+        return entry.startsWith("language-") ? entry.substring("language-".length) : entry;
+      })
+    } else if(CODEBLOCK_LANGUAGE) {
+      ele.c[0][1] = [ CODEBLOCK_LANGUAGE ];// TODO:  support setting a default
+    }
   }
 }
 

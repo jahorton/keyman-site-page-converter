@@ -21,8 +21,9 @@ export function command_main() {
     console.log("This tool is designed for use in converting individual pages of the Keyman sites from HTML to MD.");
     console.log("");
     console.log("Usage:  node convert.mjs <site-path-to-page>");
-    console.log("        --ast         Instead of converting the page, outputs `pandoc`'s AST parse of it.");
-    console.log("        --overwrite   Completely erases the original page after converting it.");
+    console.log("  --ast                             Instead of converting the page, outputs `pandoc`'s AST parse of it.");
+    console.log("  --codeblock-language <language>   Sets the language used by codeblocks if not already set.");
+    console.log("  --overwrite                       Completely erases the original page after converting it.");
     console.log();
     console.log("<site-path-to-page> should closely match the URL for the live site, but without the protocol");
     console.log("or server-root prefix.  For https://help.keyman.com/convert/this/page, use `convert/this/page`");
@@ -43,7 +44,9 @@ export function command_main() {
   // Configuration settings for the call
   let options = {
     ast: false,
-    overwrite: false
+    overwrite: false,
+    codeblockLanguage: undefined,
+    verbose: false
   };
 
   for(let arg = mainArgs.shift(); arg !== undefined; arg = mainArgs.shift()) {
@@ -58,6 +61,12 @@ export function command_main() {
         break;
       case '--overwrite':
         options.overwrite = true;
+        break;
+      case '--codeblock-language':
+        options.codeblockLanguage = mainArgs.shift();
+        break;
+      case '--verbose':
+        options.verbose = true;
         break;
       default:
         // In the default state, this should be the site path to the page to convert,
@@ -117,11 +126,17 @@ export function convertFile(location, options) {
     }
   }
 
+  let ENV={
+    env: {
+      CODEBLOCK_LANGUAGE: options.codeblockLanguage
+    }
+  };
+
   // Standard case.
   pandocCmd = `pandoc --from html --to markdown_phpextra+backtick_code_blocks \
     ${sitepath} -o ${outpath} --filter "${BASE_DIR}/pandoc-filter.js"`;
 
-  const catOutput = child_process.execSync(pandocCmd).toString();  //EXECute.
+  const catOutput = child_process.execSync(pandocCmd, ENV).toString();  //EXECute.
   if(catOutput) {
     console.log(catOutput);
   }
@@ -171,5 +186,12 @@ issues with page conversion, this is considered an error.  Aborting.`);
 // Only run this if we're being directly run via Node, not through an import.
 if(import.meta.url === pathToFileURL(process.argv[1]).href) {
   let { paths, options } = command_main();
+  if(options.verbose) {
+    console.log("Paths: ");
+    console.log(paths);
+    console.log();
+    console.log("Options: ");
+    console.log(options);
+  }
   paths.forEach((path) => convertFile(path, options));
 }
