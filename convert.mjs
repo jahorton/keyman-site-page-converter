@@ -10,6 +10,7 @@ if(BASE_DIR.startsWith("file:///")) {
 
 // Performs relative pathing to the help.keyman.com repo's directory.
 const REPO_DIR = `${BASE_DIR}/../help.keyman.com`;
+const LOCALHOST = `http://localhost:8055`;
 
 /**
  * Defines this script's command-line interface, which is used when executed directly by Node.
@@ -84,7 +85,7 @@ export function convertFile(location, options) {
   const filename = path.basename(location);
   const filepath = `${REPO_DIR}/${location_folder}/${filename}.php`;
   const outpath  = `${REPO_DIR}/${location_folder}/${filename}.md`;
-  const sitepath = `http://localhost:8055/developer/language/guide/${filename}`;
+  const sitepath = `${LOCALHOST}/developer/language/guide/${filename}`;
 
   // Does the original page source exist?  Check before proceeding!
   if(!fs.existsSync(filepath)) {
@@ -170,7 +171,5 @@ issues with page conversion, this is considered an error.  Aborting.`);
 // Only run this if we're being directly run via Node, not through an import.
 if(import.meta.url === pathToFileURL(process.argv[1]).href) {
   let { paths, options } = command_main();
-  console.log(paths);
-  console.log(options);
   paths.forEach((path) => convertFile(path, options));
 }
