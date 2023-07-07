@@ -177,8 +177,8 @@ issues with page conversion, this is considered an error.  Aborting.`);
   const titlePart = firstLine.substring(startIndex, endIndex);
 
   const newFirstLines = `---
-  title: ${titlePart}
-  ---`;
+title: ${titlePart}
+---`;
 
   // End title conversion
 
