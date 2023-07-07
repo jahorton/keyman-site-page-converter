@@ -23,7 +23,7 @@ export function command_main() {
     console.log("Usage:  node convert.mjs <site-path-to-page>");
     console.log("  --ast                             Instead of converting the page, outputs `pandoc`'s AST parse of it.");
     console.log("  --codeblock-language <language>   Sets the language used by codeblocks if not already set.");
-    console.log("  --overwrite                       Completely erases the original page after converting it.");
+    console.log("  --finalize                        Completely erases the original page after converting it.");
     console.log("  --verbose                         Adds verbose logging (to help diagnose problems).");
     console.log();
     console.log("<site-path-to-page> should closely match the URL for the live site, but without the protocol");
@@ -45,7 +45,7 @@ export function command_main() {
   // Configuration settings for the call
   let options = {
     ast: false,
-    overwrite: false,
+    finalize: false,
     codeblockLanguage: undefined,
     verbose: false
   };
@@ -60,8 +60,8 @@ export function command_main() {
       case '--ast':
         options.ast = true;
         break;
-      case '--overwrite':
-        options.overwrite = true;
+      case '--finalize':
+        options.finalize = true;
         break;
       case '--codeblock-language':
         options.codeblockLanguage = mainArgs.shift();
@@ -87,7 +87,9 @@ export function command_main() {
  * @param {*} location  The location component of the URL for the page when hosted.
  * @param {*} options Includes the options specified below:
  *   - `options.ast`: If `true`, outputs pandoc's AST / parse-tree as its own file (.ast)
- *   - `options.overwrite`:  If `true`, erases the original source version after conversion.
+ *   - `options.finalize`:  If `true`, erases the original source version after conversion.
+ *   - `options.verbose`:  Outputs the commands used to run pandoc and possibly other logging
+ *   - `options.codeblockLanguage`: Sets the language for any code-blocks without one already set
  * @returns
  */
 export function convertFile(location, options) {
@@ -155,8 +157,8 @@ export function convertFile(location, options) {
   }
 
   // If we're writing out AST, that's a sign
-  if(options.ast && options.overwrite) {
-    console.error(`--ast and --overwrite mode are both set.  As AST mode is used to diagnose automation
+  if(options.ast && options.finalize) {
+    console.error(`--ast and --finalize mode are both set.  As AST mode is used to diagnose automation
 issues with page conversion, this is considered an error.  Aborting.`);
     process.exit(1);
   }
@@ -191,7 +193,7 @@ title: ${titlePart}
   fs.writeFileSync(outpath, `${newFirstLines}
   ${everythingElse}`);
 
-  if(options.overwrite) {
+  if(options.finalize) {
     fs.rmSync(filepath); // to remove the original file we just converted
   }
 }
