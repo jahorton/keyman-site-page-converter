@@ -46,8 +46,13 @@ function clean_links(ele, format, meta) {
     }
 
     // Double-check the link itself:  we prefer removing page extensions from links.
-    // That's at ele.c[2][0].
     let href = ele.c[2][0];
+
+    // If it's a site-external link, do not modify the link further.
+    if(href.indexOf('http://') != -1 || href.indexOf('https://') != -1) {
+      return;
+    }
+
     let lastFolderIndex = href.lastIndexOf('/');
     let extensionIndex = href.lastIndexOf('.');
 
