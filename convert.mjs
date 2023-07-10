@@ -101,7 +101,7 @@ export function convertFile(location, options) {
 
   // Does the original page source exist?  Check before proceeding!
   if(!fs.existsSync(filepath)) {
-    console.error("Original PHP/HTML source for the page does not exist!");
+    console.error(`Original PHP/HTML source for the page (${filepath}) does not exist!`);
     process.exit(1);
   }
 

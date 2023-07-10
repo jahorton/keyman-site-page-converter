@@ -40,8 +40,23 @@ function prevent_header_auto_identifiers(ele, format, meta) {
 // Allows us to strip off link alt-text / captioning
 function clean_links(ele, format, meta) {
   if(ele.t == "Link") {
+    // Removes link 'title text'
     if(ele.c[2] && ele.c[2].length > 1) {
       ele.c[2] = [ele.c[2][0], '']
+    }
+
+    // Double-check the link itself:  we prefer removing page extensions from links.
+    // That's at ele.c[2][0].
+    let href = ele.c[2][0];
+    let lastFolderIndex = href.lastIndexOf('/');
+    let extensionIndex = href.lastIndexOf('.');
+
+    // if neither is found, -1 is not > -1.
+    // if '<file with extension>', no folder (-1) < index of extension
+    // if '../<extensionless>', extensionIndex < lastFolderIndex
+    // if '../<file with extension>', lastFolderIndex < index of extension
+    if(extensionIndex > lastFolderIndex) {
+      ele.c[2][0] = href.substring(0, extensionIndex);
     }
   }
 }
