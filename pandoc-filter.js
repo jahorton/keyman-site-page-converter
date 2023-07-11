@@ -56,12 +56,21 @@ function clean_links(ele, format, meta) {
     let lastFolderIndex = href.lastIndexOf('/');
     let extensionIndex = href.lastIndexOf('.');
 
-    // if neither is found, -1 is not > -1.
-    // if '<file with extension>', no folder (-1) < index of extension
-    // if '../<extensionless>', extensionIndex < lastFolderIndex
-    // if '../<file with extension>', lastFolderIndex < index of extension
-    if(extensionIndex > lastFolderIndex) {
-      ele.c[2][0] = href.substring(0, extensionIndex);
+    let extension = href.substring(extensionIndex);
+    switch(extension) {
+      // We'll go 'opt-in' for certain file extensions.
+      // For example, any linked .pdf files still need their extension specified.
+      case '.md':
+      case '.php':
+      case '.html':
+      case '.htm':
+        // if neither is found, -1 is not > -1.
+        // if '<file with extension>', no folder (-1) < index of extension
+        // if '../<extensionless>', extensionIndex < lastFolderIndex
+        // if '../<file with extension>', lastFolderIndex < index of extension
+        if(extensionIndex > lastFolderIndex) {
+          ele.c[2][0] = href.substring(0, extensionIndex);
+        }
     }
   }
 }
