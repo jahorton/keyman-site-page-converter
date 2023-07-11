@@ -60,10 +60,9 @@ function clean_links(ele, format, meta) {
     switch(extension) {
       // We'll go 'opt-in' for certain file extensions.
       // For example, any linked .pdf files still need their extension specified.
+      // This also goes for .htm / .html, apparently!
       case '.md':
       case '.php':
-      case '.html':
-      case '.htm':
         // if neither is found, -1 is not > -1.
         // if '<file with extension>', no folder (-1) < index of extension
         // if '../<extensionless>', extensionIndex < lastFolderIndex
