@@ -107,7 +107,36 @@ export function convertFile(location, options) {
 
   // Disable the template header.
   let sourceFileContents = fs.readFileSync(filepath).toString();
-  sourceFileContents = sourceFileContents.replace(/head\([^\)]*\);?/, '');
+  let pageTitle = '';
+
+  // The most-commonly used & most up-to-date template application:
+  let modernTitleMatch = sourceFileContents.match(/'title'[ ]*=>[ ]*"([^"]+)"/);
+  if(!modernTitleMatch) {
+    modernTitleMatch = sourceFileContents.match(/'title'[ ]*=>[ ]*'([^']+)'/);
+  }
+  if(modernTitleMatch) {
+    pageTitle = modernTitleMatch[1];
+  }
+
+  let titleInsert = '';
+  if(modernTitleMatch) {
+    pageTitle = pageTitle.replace(/&amp;/g, '&');
+    // Preserve the title component for future reads.
+    titleInsert = `// 'title' => "${pageTitle}"`
+  }
+  sourceFileContents = sourceFileContents.replace(/head\([^\)]*\);?/, titleInsert);
+
+  // An older variant we need to look out for:
+  sourceFileContents = sourceFileContents.replace("require_once('header.php');", '');
+  sourceFileContents = sourceFileContents.replace("include('footer.php');", '');
+
+  let legacyTitleMatch = sourceFileContents.match(/\$pagename[ ]*=[ ]*'([^']+)'/);
+  if(legacyTitleMatch) {
+    pageTitle = legacyTitleMatch[1];
+  }
+
+  pageTitle = pageTitle.replace(/&amp;/g, '&');
+
   fs.writeFileSync(filepath, sourceFileContents);
 
   // Did we convert it once previously?  If so, we should remove the conversion before proceeding.
@@ -172,15 +201,34 @@ issues with page conversion, this is considered an error.  Aborting.`);
   // # Comments
   const firstNewLine = fileContents.indexOf('\n');  // Find the first position of '\n' - the newline character
   const firstLine = fileContents.substring(0, firstNewLine); // Get the section of the string we want:  from position 0 to the newline's position.
-  let everythingElse = fileContents.substring(firstNewLine+1); // +1:  doesn't copy the '\n'.
+  let everythingElse = fileContents;
+  let newFirstLines = '';
 
-  const startIndex = 2;
-  const endIndex = firstLine.length;
-  const titlePart = firstLine.substring(startIndex, endIndex);
+  let firstLineHeaderMatch = firstLine.match(/#[^#][ ]*([^\n]+)/);
 
-  const newFirstLines = `---
-title: ${titlePart}
+  // Preserve legacy page-titles, but allow modern ones to be replaced
+  // by in-page headers.  (Legacy titles are directly inserted in their
+  // PHP pages, but that goes missing when we turn the templates off!)
+  let extractedTitle = false;
+  if(firstLineHeaderMatch && !legacyTitleMatch) {
+    pageTitle = firstLineHeaderMatch[1];
+    extractedTitle = true;
+  }
+
+  // If we set the title based on the first <h1> (or similar) entry,
+  // don't include its original version.
+  if(extractedTitle) {
+    everythingElse = fileContents.substring(firstNewLine+1); // +1:  doesn't copy the '\n'.
+  }
+
+  if(pageTitle) {
+    newFirstLines = `---
+title: ${pageTitle}
 ---`;
+  } else {
+    console.warn("Could not determine file's title!");
+    everythingElse = fileContents;
+  }
 
   // End title conversion
 
@@ -191,7 +239,7 @@ title: ${titlePart}
   everythingElse = everythingElse.replace(keySpanRegex, "<key>$1</key>");
 
   fs.writeFileSync(outpath, `${newFirstLines}
-  ${everythingElse}`);
+${everythingElse}`);
 
   if(options.finalize) {
     fs.rmSync(filepath); // to remove the original file we just converted

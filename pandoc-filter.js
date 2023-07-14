@@ -37,6 +37,14 @@ function prevent_header_auto_identifiers(ele, format, meta) {
   return;
 }
 
+function clean_image_styling(ele, format, meta) {
+  if(ele.t == "Image") {
+    ele.c[0][0] = "";
+    ele.c[0][1] = [];
+    ele.c[0][2] = [];
+  }
+}
+
 // Allows us to strip off link alt-text / captioning
 function clean_links(ele, format, meta) {
   if(ele.t == "Link") {
@@ -74,15 +82,32 @@ function clean_links(ele, format, meta) {
   }
 }
 
+// Disabling the extension on output appears to do nothing, so...
+function clean_div_bodytext(ele, format, meta) {
+  if(ele.t == "Div" && ele.c[0][1] == "body_text") {
+    // Erase the <div class='body_text'> elements seen in some older pages
+    return ele.c[1];
+  }
+  return;
+}
+
 // It seems all must be called by one top-level function?
 function all(ele, format, meta) {
   force_backtick_code_blocks(ele, format, meta);
   clean_code_block_language(ele, format, meta);
   prevent_header_auto_identifiers(ele, format, meta);
   clean_links(ele, format, meta);
+  clean_image_styling(ele, format, meta);
+
   // Cannot convert <span class="key"></span> to <key></key> here; Pandoc's AST
   // does not support a 'Key' type.
   // See: https://github.com/jgm/pandoc/issues/5796
+
+  let retVal = clean_div_bodytext(ele, format, meta);
+  if(retVal) {
+    // Cut out this DIV, but also make sure to filter its inner elements.
+    return pandoc.walkSync(retVal, all, format, meta);
+  }
 }
 
 pandoc.stdio(all);
