@@ -241,6 +241,31 @@ title: ${pageTitle}
   fs.writeFileSync(outpath, `${newFirstLines}
 ${everythingElse}`);
 
+  if(options.linkCheck) {
+    const magicGrepCmd = `grep -rEl "(href=(['\\"])(?:[^'\\"]+/)?${filename})\.php['\\"]"`;
+    const pathsWithReference = child_process.execSync(magicGrepCmd).toString();  //EXECute.
+    if(pathsWithReference) {
+      const basePathsList = pathsWithReference.split('\n');
+      console.log();
+      console.log(`Paths detected with possible link to ${filepath}:`)
+      for(let path of basePathsList) {
+        // Silence any reports for folders versioned before 16.0.  They're old enough that
+        // we (currently) don't care to convert 'em.
+        const versionMatch = path.match(/(\d+)\.(\d+)/);
+        if(versionMatch) {
+          let major = versionMatch[1];
+          let minor = versionMatch[2];
+
+          if(Number.parseInt(major, 10) >= 16) {
+            console.log(`- ${path}`);
+          }
+        } else {
+          console.log(`- ${path}`);
+        }
+      }
+    }
+  }
+
   if(options.finalize) {
     fs.rmSync(filepath); // to remove the original file we just converted
     console.log(`Deleted ${filepath}.`);
@@ -250,6 +275,9 @@ ${everythingElse}`);
 // Only run this if we're being directly run via Node, not through an import.
 if(import.meta.url === pathToFileURL(process.argv[1]).href) {
   let { paths, options } = command_main();
+
+  // Currently perma-on, but easy enough to turn off if/when we want.
+  options.linkCheck = true;
   if(options.verbose) {
     console.log("Paths: ");
     console.log(paths);
