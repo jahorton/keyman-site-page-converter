@@ -63,8 +63,11 @@ function clean_links(ele, format, meta) {
 
     let lastFolderIndex = href.lastIndexOf('/');
     let extensionIndex = href.lastIndexOf('.');
+    let targetIndex = href.indexOf('#', extensionIndex);
 
-    let extension = href.substring(extensionIndex);
+    const target = targetIndex > -1 ? href.substring(targetIndex) : '';
+
+    let extension = href.substring(extensionIndex, targetIndex > -1 ? targetIndex : undefined);
     switch(extension) {
       // We'll go 'opt-in' for certain file extensions.
       // For example, any linked .pdf files still need their extension specified.
@@ -76,7 +79,8 @@ function clean_links(ele, format, meta) {
         // if '../<extensionless>', extensionIndex < lastFolderIndex
         // if '../<file with extension>', lastFolderIndex < index of extension
         if(extensionIndex > lastFolderIndex) {
-          ele.c[2][0] = href.substring(0, extensionIndex);
+          // Re-append the target if one existed!
+          ele.c[2][0] = href.substring(0, extensionIndex) + target;
         }
     }
   }

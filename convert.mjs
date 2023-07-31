@@ -242,7 +242,7 @@ title: ${pageTitle}
 ${everythingElse}`);
 
   if(options.linkCheck) {
-    const magicGrepCmd = `grep -rEl "(href=(['\\"])(?:[^'\\"]+/)?${filename})\.php['\\"]"`;
+    const magicGrepCmd = `grep -rEl "(href=(['\\"])(?:[^'\\"]+/)?${filename})\.php(#[^'\\"]+)?['\\"]"`;
     const pathsWithReference = child_process.execSync(magicGrepCmd).toString();  //EXECute.
     if(pathsWithReference) {
       const basePathsList = pathsWithReference.split('\n');
